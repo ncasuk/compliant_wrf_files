@@ -1,0 +1,25 @@
+#!/bin/bash
+#link a directory of files.
+dirsource=pathtosourcedirectory
+
+ln -sf /$dirsource/wrfout* source/
+
+for x in $(ls source/); do
+ext=`echo $x | sed -e "s/.*\///"`
+cp wrfout_to_cf_master.ncl ncl_templates/$ext
+done
+
+cd ncl_templates
+for y in $(ls);do
+sed -i -e "s#%%filenamein%%#../source/"$y"#g" $y
+sed -i -e "s#%%filenameout%%#../processed/"$y".nc#g" $y
+
+echo template created for "$y" 
+done
+
+for z in $(ls); do
+echo converting "$z"
+bsub -q short-serial ncl "$z" &
+
+done
+
